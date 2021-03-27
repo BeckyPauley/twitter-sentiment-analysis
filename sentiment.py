@@ -25,33 +25,36 @@ class TweetStreamListener(StreamListener):
         tweet = TextBlob(dict_data["text"])
 
         # output sentiment polarity
-        print tweet.sentiment.polarity
+        pol = tweet.sentiment.polarity
+        print(pol)
 
         # determine if sentiment is positive, negative, or neutral
-        if tweet.sentiment.polarity < 0:
-            sentiment = "negative"
-        elif tweet.sentiment.polarity == 0:
-            sentiment = "neutral"
-        else:
-            sentiment = "positive"
+        def get_sentiment(pol):
+            if pol < 0:
+                return "negative"
+            if pol == 0:
+                return "neutral"
+            if pol > 0:
+                return "positive"
 
         # output sentiment
-        print sentiment
+        value = get_sentiment(pol)
+        print(value)
 
         # add text and sentiment info to elasticsearch
-        es.index(index="sentiment",
+        es.index(index="result",
                  doc_type="test-type",
                  body={"author": dict_data["user"]["screen_name"],
                        "date": dict_data["created_at"],
                        "message": dict_data["text"],
-                       "polarity": tweet.sentiment.polarity,
+                       "polarity": pol,
                        "subjectivity": tweet.sentiment.subjectivity,
-                       "sentiment": sentiment})
+                       "sentiment": get_sentiment(pol)})
         return True
 
     # on failure
     def on_error(self, status):
-        print status
+        print(status)
 
 if __name__ == '__main__':
 
@@ -66,4 +69,4 @@ if __name__ == '__main__':
     stream = Stream(auth, listener)
 
     # search twitter for "congress" keyword
-    stream.filter(track=['congress'])
+    stream.filter(track=['marmite'])
